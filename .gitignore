@@ -1,0 +1,45 @@
+#api
+/api/node_modules
+
+# web-version
+
+# dependencies
+/web-version/node_modules
+/web-version/.pnp
+/web-version.pnp.js
+
+# testing
+/web-version/coverage
+
+# production
+/web-version/build
+
+# misc
+/web-version.DS_Store
+/web-version.env.local
+/web-version.env.development.local
+/web-version.env.test.local
+/web-version.env.production.local
+
+
+# desktop-version
+
+# dependencies
+/desktop-version/node_modules
+/desktop-version/.pnp
+/desktop-version.pnp.js
+
+# testing
+/desktop-version/coverage
+
+# production
+/desktop-version/build
+
+# misc
+/desktop-version.DS_Store
+/desktop-version.env.local
+/desktop-version.env.development.local
+/desktop-version.env.test.local
+/desktop-version.env.production.local
+
+

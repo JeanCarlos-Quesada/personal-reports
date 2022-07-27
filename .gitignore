@@ -1,5 +1,6 @@
 #api
 /api/node_modules
+/api/dist
 
 # web-version
 

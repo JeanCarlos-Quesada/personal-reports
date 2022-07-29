@@ -1,4 +1,5 @@
 import fs from "fs";
+import { SqlServerRow } from "../interfaces/sqlServerResult";
 
 class Utilities {
   /**
@@ -11,6 +12,20 @@ class Utilities {
     const result = JSON.parse(jsonString.toString());
     return result;
   };
+
+  convertSqlServerResultToJSON(sqlResult: SqlServerRow[][]): any {
+    const result: any[] = [];
+
+    sqlResult.map((row: SqlServerRow[]): void => {
+      const rowData: any = {};
+      row.map((data: SqlServerRow) => {
+        rowData[data.metadata.colName] = data.value;
+      });
+      result.push(rowData);
+    });
+
+    return result;
+  }
 }
 
 export default Utilities;

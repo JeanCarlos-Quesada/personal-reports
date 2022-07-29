@@ -5,6 +5,8 @@ import {
   DbRequestConnection,
   Parameter,
 } from "../interfaces/database";
+import { SqlServerRow } from "../interfaces/sqlServerResult";
+import Utilities from "./utilities";
 
 class DbConnection {
   /**
@@ -128,6 +130,7 @@ class DbConnection {
   //#endregion connections
 
   //#region querys
+
   /**
    * This function executes a query against a database, and returns the results.
    * @param {string} query - string - The query to execute
@@ -161,7 +164,7 @@ class DbConnection {
       const result = await (this.connection as mysql2.Connection)
         .promise()
         .query(query, parameters);
-      const rows = (result[0] as any[])[0];
+      const rows = result[0] as any[];
       queryResult = rows;
     } catch (error) {
       console.error(error);
@@ -179,23 +182,30 @@ class DbConnection {
     query: string,
     parameters: Parameter[]
   ): Promise<any> {
-    const Request = tedious.Request;
+    return new Promise<any>((resolve, reject) => {
+      const Request = tedious.Request;
 
-    const request = new Request(
-      query,
-      (err: Error, rowCount: number, rows: any) => {
-        if (err) {
-          console.log(err);
+      const request = new Request(
+        query,
+        (err: Error, rowCount: number, rows: SqlServerRow[][]) => {
+          if (err) {
+            return reject(err);
+          }
+
+          (this.connection as tedious.Connection).close();
+
+          const utilities: Utilities = new Utilities();
+
+          const result: any[] = utilities.convertSqlServerResultToJSON(rows);
+          return resolve(result);
         }
-        (this.connection as tedious.Connection).close();
-        return rows;
-      }
-    );
-    parameters.map((item) => {
-      request.addParameter(item.name, null, item.value);
-    });
+      );
+      parameters.map((item) => {
+        request.addParameter(item.name, null, item.value);
+      });
 
-    (this.connection as tedious.Connection).execSql(request);
+      (this.connection as tedious.Connection).execSql(request);
+    });
   }
   //#endregion querys
 }

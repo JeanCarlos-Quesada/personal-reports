@@ -7,6 +7,8 @@ import {
 } from "../interfaces/database";
 import { SqlServerRow } from "../interfaces/sqlServerResult";
 import Utilities from "./utilities";
+import { config } from "../server/constants/config";
+import { databaseNames } from "../server/constants/variablesConstants";
 
 class DbConnection {
   /**
@@ -14,15 +16,15 @@ class DbConnection {
    * @param {DbRequestConnection} db - DbRequestConnection
    */
   public async initConnection(db: DbRequestConnection): Promise<DbConnection> {
-    const DbCredentials: DatabaseCredentials = this.getCredentials(db.dbName);
+    const DbCredentials: DatabaseCredentials = await this.getCredentials(db.dbName);
     switch (db.dbType) {
-      case "mysql":
+      case databaseNames.mysql:
         this.connection = this.setMySQLConnection(DbCredentials);
         break;
-      case "sqlserver":
+      case databaseNames.sqlServer:
         this.connection = await this.setSqlServerConnection(DbCredentials);
         break;
-      case "oracle":
+      case databaseNames.oracle:
         break;
     }
 
@@ -37,22 +39,27 @@ class DbConnection {
   //#endregion props
 
   //#region connections
-  private getCredentials(dbName: string): DatabaseCredentials {
-    // const DbCredentials: DatabaseCredentials = {
-    //   server: "localhost",
-    //   username: "Developer",
-    //   password: "PerroCafe",
-    //   databaseName: "e_commerce",
-    // };
-
-    const DbCredentials: DatabaseCredentials = {
-      server: "127.0.0.1",
-      username: "test1",
-      password: "GhJ09876",
-      databaseName: "e_commerce",
-    };
-
-    return DbCredentials;
+/**
+ * It takes a database name as a parameter, and returns the credentials for that database.
+ * If the dbName isn't send use the system database
+ * @param {string} dbName - string - The name of the database you want to connect to.
+ * @returns The credentials for the database.
+ */
+  private async getCredentials(dbName: string): Promise<DatabaseCredentials> {
+    if (dbName) {
+      const systemDatabase = this.setMySQLConnection(config.connectionString);
+      try {
+        const result = await (systemDatabase as mysql2.Connection)
+          .promise()
+          .query("select * from dbCredentials where name = ?", dbName);
+        const rows = (result[0] as any[])[0];
+        return rows;
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      return config.connectionString;
+    }
   }
 
   /**
@@ -63,12 +70,12 @@ class DbConnection {
   private setMySQLConnection(
     credentials: DatabaseCredentials
   ): mysql2.Connection {
-    const config = {
+    const configDB = {
       host: credentials.server,
       user: credentials.username,
       password: credentials.password,
       dateStrings: true,
-      port: 3306,
+      port: credentials.port,
       database: credentials.databaseName,
       typeCast: function castField(field: any, useDefaultTypeCasting: any) {
         if (field.type === "BIT" && field.length === 1) {
@@ -81,7 +88,7 @@ class DbConnection {
       },
     };
 
-    const connection: mysql2.Connection = mysql2.createConnection(config);
+    const connection: mysql2.Connection = mysql2.createConnection(configDB);
     return connection;
   }
 
@@ -95,24 +102,24 @@ class DbConnection {
     credentials: DatabaseCredentials
   ): Promise<tedious.Connection> {
     const Connection = tedious.Connection;
-    const config = {
-      server: credentials.server, // update me
-      port: 1433,
+    const configDB = {
+      server: credentials.server,
+      port: credentials.port,
       authentication: {
         type: "default",
         options: {
-          userName: credentials.username, // update me
-          password: credentials.password, // update me
+          userName: credentials.username,
+          password: credentials.password,
         },
       },
       options: {
         // If you are on Microsoft Azure, you need encryption:
         encrypt: false,
-        database: credentials.databaseName, // update me
+        database: credentials.databaseName,
         rowCollectionOnRequestCompletion: true,
       },
     };
-    const connection = new Connection(config);
+    const connection = new Connection(configDB);
     return new Promise((resolve, reject) => {
       connection.on("connect", (err) => {
         if (err) {

@@ -3,6 +3,7 @@ interface DatabaseCredentials {
   username: string;
   password: string;
   databaseName: string;
+  port: number;
 }
 
 interface DbRequestConnection {

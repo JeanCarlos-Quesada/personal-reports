@@ -13,6 +13,11 @@ class Utilities {
     return result;
   };
 
+  /**
+   * It takes a the sql server result and convert it to json object [{columnName: value}]
+   * @param {SqlServerRow[][]} sqlResult - SqlServerRow[][] - This is the result of the query.
+   * @returns An array of objects.
+   */
   convertSqlServerResultToJSON(sqlResult: SqlServerRow[][]): any {
     const result: any[] = [];
 

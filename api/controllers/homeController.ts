@@ -1,21 +1,15 @@
 import { Response } from "../interfaces/response";
 import { DbConnection } from "../utilities/dbConnection";
+import Utilities from "../utilities/utilities";
 
 class HomeController {
-  OnLogin = async (req: any, res: any): Promise<any> => {
-    /*Create connection Class*/
-    const connection = await new DbConnection().initConnection({ dbType: "mysql", dbName: "test" });
-    /*Execute query*/
-    connection.executeQuery("select * from cartproducts", []).then((result) => {
-      const response: Response = {
-        message: "",
-        successfully: true,
-        data: result,
-      };
+  constructor() {
+    this.utilities = new Utilities();
+    this.connection = new DbConnection();
+  }
 
-      return res.json(response);
-    });
-  };
+  private utilities: Utilities;
+  private connection: DbConnection;
 }
 
 export { HomeController };

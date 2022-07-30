@@ -1,10 +1,12 @@
 import mysql2 from "mysql2";
-import * as tedious from "tedious";
+import tedious from "tedious";
+import oracledb from "oracledb";
 import {
   DatabaseCredentials,
   DbRequestConnection,
   Parameter,
 } from "../interfaces/database";
+import { ReportData } from "../interfaces/reports";
 import { SqlServerRow } from "../interfaces/sqlServerResult";
 import Utilities from "./utilities";
 import { config } from "../server/constants/config";
@@ -16,7 +18,9 @@ class DbConnection {
    * @param {DbRequestConnection} db - DbRequestConnection
    */
   public async initConnection(db: DbRequestConnection): Promise<DbConnection> {
-    const DbCredentials: DatabaseCredentials = await this.getCredentials(db.dbName);
+    const DbCredentials: DatabaseCredentials = await this.getCredentials(
+      db.dbName
+    );
     switch (db.dbType) {
       case databaseNames.mysql:
         this.connection = this.setMySQLConnection(DbCredentials);
@@ -25,6 +29,7 @@ class DbConnection {
         this.connection = await this.setSqlServerConnection(DbCredentials);
         break;
       case databaseNames.oracle:
+        this.connection = await this.setOracleConnection(DbCredentials);
         break;
     }
 
@@ -34,17 +39,20 @@ class DbConnection {
   }
 
   //#region props
-  private connection: mysql2.Connection | tedious.Connection;
+  private connection:
+    | mysql2.Connection
+    | tedious.Connection
+    | oracledb.Connection;
   private databaseType: string;
   //#endregion props
 
   //#region connections
-/**
- * It takes a database name as a parameter, and returns the credentials for that database.
- * If the dbName isn't send use the system database
- * @param {string} dbName - string - The name of the database you want to connect to.
- * @returns The credentials for the database.
- */
+  /**
+   * It takes a database name as a parameter, and returns the credentials for that database.
+   * If the dbName isn't send use the system database
+   * @param {string} dbName - string - The name of the database you want to connect to.
+   * @returns The credentials for the database.
+   */
   private async getCredentials(dbName: string): Promise<DatabaseCredentials> {
     if (dbName) {
       const systemDatabase = this.setMySQLConnection(config.connectionString);
@@ -134,6 +142,23 @@ class DbConnection {
       connection.connect();
     });
   }
+
+  /**
+   * This function returns a promise that resolves to an Oracle database connection object.
+   * @param {DatabaseCredentials} credentials - DatabaseCredentials
+   * @returns A Promise&lt;oracledb.Connection&gt;
+   */
+  private async setOracleConnection(
+    credentials: DatabaseCredentials
+  ): Promise<oracledb.Connection> {
+    const connection: oracledb.Connection = await oracledb.getConnection({
+      user: credentials.username,
+      password: credentials.password,
+      connectionString: `${credentials.server}/${credentials.databaseName}`,
+    });
+
+    return connection;
+  }
   //#endregion connections
 
   //#region querys
@@ -145,8 +170,8 @@ class DbConnection {
    */
   public async executeQuery(
     query: string,
-    parameters: Parameter[]
-  ): Promise<any> {
+    parameters: Parameter[] = []
+  ): Promise<ReportData[]> {
     switch (this.databaseType) {
       case "mysql":
         return await this.executeMySqlQuery(query, parameters);
@@ -165,13 +190,13 @@ class DbConnection {
   private async executeMySqlQuery(
     query: string,
     parameters: Parameter[]
-  ): Promise<any> {
-    let queryResult: any[] = [];
+  ): Promise<ReportData[]> {
+    let queryResult: ReportData[] = [];
     try {
       const result = await (this.connection as mysql2.Connection)
         .promise()
         .query(query, parameters);
-      const rows = result[0] as any[];
+      const rows = result[0] as ReportData[];
       queryResult = rows;
     } catch (error) {
       console.error(error);
@@ -188,7 +213,7 @@ class DbConnection {
   private async executeSqlServerQuery(
     query: string,
     parameters: Parameter[]
-  ): Promise<any> {
+  ): Promise<ReportData[]> {
     return new Promise<any>((resolve, reject) => {
       const Request = tedious.Request;
 
@@ -203,7 +228,8 @@ class DbConnection {
 
           const utilities: Utilities = new Utilities();
 
-          const result: any[] = utilities.convertSqlServerResultToJSON(rows);
+          const result: ReportData[] =
+            utilities.convertSqlServerResultToJSON(rows);
           return resolve(result);
         }
       );

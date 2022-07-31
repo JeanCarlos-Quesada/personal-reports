@@ -1,6 +1,8 @@
+import { Parameter } from "./database";
+
 interface Report {
-  columns: ReportColumn[];
-  data: ReportData[];
+  name: string;
+  scripts?: ScriptToExecute[];
 }
 
 interface ReportColumn {
@@ -9,8 +11,19 @@ interface ReportColumn {
 }
 
 interface ReportData {
-  name: string;
-  value: any;
+  result: any[];
+  columns: ReportColumn[];
 }
 
-export { Report, ReportColumn, ReportData };
+interface ScriptToExecute {
+  name: string;
+  script: string;
+  dbName: string;
+  dbType: string;
+  initColumn: number;
+  initRow: number;
+  columns: ReportColumn[];
+  parameters: Parameter[];
+}
+
+export { Report, ReportColumn, ReportData, ScriptToExecute };

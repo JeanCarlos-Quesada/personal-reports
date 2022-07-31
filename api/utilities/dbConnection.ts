@@ -6,7 +6,6 @@ import {
   DbRequestConnection,
   Parameter,
 } from "../interfaces/database";
-import { ReportData } from "../interfaces/reports";
 import { SqlServerRow } from "../interfaces/sqlServerResult";
 import Utilities from "./utilities";
 import { config } from "../server/constants/config";
@@ -171,7 +170,7 @@ class DbConnection {
   public async executeQuery(
     query: string,
     parameters: Parameter[] = []
-  ): Promise<ReportData[]> {
+  ): Promise<any[]> {
     switch (this.databaseType) {
       case "mysql":
         return await this.executeMySqlQuery(query, parameters);
@@ -190,13 +189,13 @@ class DbConnection {
   private async executeMySqlQuery(
     query: string,
     parameters: Parameter[]
-  ): Promise<ReportData[]> {
-    let queryResult: ReportData[] = [];
+  ): Promise<any[]> {
+    let queryResult: any[] = [];
     try {
       const result = await (this.connection as mysql2.Connection)
         .promise()
         .query(query, parameters);
-      const rows = result[0] as ReportData[];
+      const rows = result[0] as any[];
       queryResult = rows;
     } catch (error) {
       console.error(error);
@@ -213,7 +212,7 @@ class DbConnection {
   private async executeSqlServerQuery(
     query: string,
     parameters: Parameter[]
-  ): Promise<ReportData[]> {
+  ): Promise<any[]> {
     return new Promise<any>((resolve, reject) => {
       const Request = tedious.Request;
 
@@ -228,7 +227,7 @@ class DbConnection {
 
           const utilities: Utilities = new Utilities();
 
-          const result: ReportData[] =
+          const result: any[] =
             utilities.convertSqlServerResultToJSON(rows);
           return resolve(result);
         }

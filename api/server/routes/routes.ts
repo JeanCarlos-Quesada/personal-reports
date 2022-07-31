@@ -14,9 +14,18 @@ class Routes {
   private reportController: ReportController;
 
   routes() {
-    router.get("/", (req, res) => {
-      this.reportController.getReportData(req, res);
+    router.post("/Reports/Create", (req, res) => {
+      this.reportController.createReport(req, res);
     });
+
+    router.get("/Reports/Read", (req, res) => {
+      this.reportController.getReport(req, res);
+    });
+
+    router.get("/Reports/ExportExcel", (req, res) => {
+      this.reportController.exportToExcel(req, res);
+    });
+
     return router;
   }
 }

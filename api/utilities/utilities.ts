@@ -1,8 +1,13 @@
 import fs from "fs";
 import { SqlServerRow } from "../interfaces/sqlServerResult";
-import { Report, ReportData } from "../interfaces/reports";
 
 class Utilities {
+  getBasePath(): string {
+    const path = __dirname.replace("utilities", "");
+
+    return path;
+  }
+
   /**
    * It reads a JSON file and returns the parsed JSON object.
    * @param path - The path to the file you want to read.
@@ -35,8 +40,8 @@ class Utilities {
    * @param {SqlServerRow[][]} sqlResult - SqlServerRow[][] - This is the result of the query.
    * @returns An array of objects.
    */
-  convertSqlServerResultToJSON(sqlResult: SqlServerRow[][]): ReportData[] {
-    const result: ReportData[] = [];
+  convertSqlServerResultToJSON(sqlResult: SqlServerRow[][]): any[] {
+    const result: any[] = [];
 
     sqlResult.map((row: SqlServerRow[]): void => {
       const rowData: any = {};
@@ -58,10 +63,12 @@ class Utilities {
    * @returns the json object with the new key.
    */
   replaceJsonKey(json: any, oldKey: string, newKey: string): void {
-    json.map((item: any) => {
-      item[newKey] = item[oldKey];
-      delete item[oldKey];
-    });
+    if (oldKey !== newKey) {
+      json.map((item: any) => {
+        item[newKey] = item[oldKey];
+        delete item[oldKey];
+      });
+    }
   }
 }
 

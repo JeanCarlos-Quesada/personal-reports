@@ -22,6 +22,10 @@ class Routes {
       this.reportController.getReport(req, res);
     });
 
+    router.get("/Reports/GetData", (req, res) => {
+      this.reportController.getReportData(req, res);
+    });
+
     router.get("/Reports/ExportExcel", (req, res) => {
       this.reportController.exportToExcel(req, res);
     });

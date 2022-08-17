@@ -1,5 +1,6 @@
 import fs from "fs";
 import { SqlServerRow } from "../interfaces/sqlServerResult";
+import { ReportColumn } from "../interfaces/reports";
 
 class Utilities {
   getBasePath(): string {
@@ -54,21 +55,26 @@ class Utilities {
     return result;
   }
 
-  /**
-   * It takes a JSON object, an old key, and a new key, and returns a new JSON object with the old key
-   * replaced by the new key
-   * @param {any} json - any - the json object you want to replace the key in only JSON array
-   * @param {string} oldKey - The key you want to replace
-   * @param {string} newKey - The new key you want to replace the old key with.
-   * @returns the json object with the new key.
-   */
-  replaceJsonKey(json: any, oldKey: string, newKey: string): void {
-    if (oldKey !== newKey) {
-      json.map((item: any) => {
-        item[newKey] = item[oldKey];
-        delete item[oldKey];
+/**
+ * It takes a JSON object and an array of ReportColumn objects and returns a new JSON object with the
+ * same data but with the keys in the order specified by the ReportColumn array.
+ *
+ * The ReportColumn object has two properties: label and sqlName. The label property is the name of the
+ * key in the new JSON object. The sqlName property is the name of the key in the original JSON object.
+ * @param {any} json - any - this is the json data that you want to order
+ * @param {ReportColumn[]} columns - ReportColumn[]
+ * @returns An array of objects.
+ */
+  orderJsonReport(json: any, columns: ReportColumn[]): any {
+    const result: any[] = [];
+    json.forEach((row: any) => {
+      const dataRow: any = {};
+      columns.forEach(({ label, sqlName }) => {
+        dataRow[label] = row[sqlName];
       });
-    }
+      result.push(dataRow);
+    });
+    return result;
   }
 }
 

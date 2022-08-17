@@ -10,11 +10,6 @@ interface ReportColumn {
   sqlName: string;
 }
 
-interface ReportData {
-  result: any[];
-  columns: ReportColumn[];
-}
-
 interface ScriptToExecute {
   name: string;
   script: string;
@@ -26,4 +21,10 @@ interface ScriptToExecute {
   parameters: Parameter[];
 }
 
-export { Report, ReportColumn, ReportData, ScriptToExecute };
+interface ReportResult {
+  initColumn: number;
+  initRow: number;
+  data: any[];
+}
+
+export { Report, ReportColumn, ScriptToExecute,ReportResult };

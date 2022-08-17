@@ -1,12 +1,7 @@
 import fs from "fs";
 import Excel from "exceljs";
 import { Response } from "../interfaces/response";
-import {
-  Report,
-  ReportColumn,
-  ReportData,
-  ScriptToExecute,
-} from "../interfaces/reports";
+import { Report, ScriptToExecute, ReportResult } from "../interfaces/reports";
 import { BaseController } from "./baseController";
 
 class ReportController extends BaseController {
@@ -51,40 +46,36 @@ class ReportController extends BaseController {
   }
 
   async getReportData(req: any, res: any): Promise<Response> {
-    // const { query, params, dbName, dbType } = req.body;
-    // /*Get report settings*/
-    // const report: Report = {
-    //   name: "Test",
-    //   columns: [
-    //     {
-    //       label: "ID",
-    //       sqlName: "id",
-    //     },
-    //   ]
-    // };
+    const { report } = req.query;
 
-    // /*Create connection Class*/
-    // await super.initConnection(dbName, dbType);
+    const reportSettings: Report = await this.getJsonReport(report);
 
-    // /*Execute query*/
-    // const result: ReportData[] = await this._connection.executeQuery(
-    //   query,
-    //   params
-    // );
+    const data: ReportResult[] = [];
 
-    // /* Replacing the key of the json object with the value of the label property. */
-    // report.columns.map((columnSettings: ReportColumn) => {
-    //   this._utilities.replaceJsonKey(
-    //     result,
-    //     columnSettings.sqlName,
-    //     columnSettings.label
-    //   );
-    // });
+    for (const item of reportSettings.scripts) {
+      await super.initConnection(item.dbName, item.dbType);
+
+      const result: any[] = await this._connection.executeQuery(
+        item.script,
+        item.parameters
+      );
+      /* Replacing the key of the json object with the value of the label property and order by columns order. */
+      const jsonResult: any = this._utilities.orderJsonReport(
+        result,
+        item.columns
+      );
+
+      data.push({
+        initColumn: item.initColumn,
+        initRow: item.initRow,
+        data: jsonResult,
+      });
+    }
 
     const response: Response = {
       message: "",
       successfully: true,
-      data: {},
+      data,
     };
 
     return res.json(response);
@@ -128,16 +119,6 @@ class ReportController extends BaseController {
         fileName: `${reportSettings.name}.xlsx`,
         buffer,
       },
-    };
-
-    return res.json(response);
-  }
-
-  async exportToJSON(req: any, res: any): Promise<Response> {
-    const response: Response = {
-      message: "",
-      successfully: true,
-      data: {},
     };
 
     return res.json(response);

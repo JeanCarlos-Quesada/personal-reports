@@ -22,6 +22,10 @@ class Routes {
       this.reportController.getReport(req, res);
     });
 
+    router.get("/Reports/All", (req, res) => {
+      this.reportController.getReports(req, res);
+    });
+
     router.get("/Reports/GetData", (req, res) => {
       this.reportController.getReportData(req, res);
     });

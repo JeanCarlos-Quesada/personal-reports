@@ -2,6 +2,7 @@ import { Parameter } from "./database";
 
 interface Report {
   name: string;
+  basePath: string;
   scripts?: ScriptToExecute[];
 }
 
@@ -27,4 +28,4 @@ interface ReportResult {
   data: any[];
 }
 
-export { Report, ReportColumn, ScriptToExecute,ReportResult };
+export { Report, ReportColumn, ScriptToExecute, ReportResult };

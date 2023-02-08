@@ -11,7 +11,9 @@ class ReportController extends BaseController {
 
     const path = this._utilities.getBasePath();
     const directoryPath = `${path}\\reports`;
-    const savePath = `${directoryPath}\\${report.name}.json`;
+    const savePath = `${directoryPath}\\${
+      report.basePath != null ? `${report.basePath}\\` : ""
+    }${report.name}.json`;
     const jsonString = JSON.stringify(report);
 
     if (!fs.existsSync(directoryPath)) {
@@ -40,6 +42,22 @@ class ReportController extends BaseController {
       message: "",
       successfully: true,
       data: report,
+    };
+
+    return res.json(response);
+  }
+
+  async getReports(req: any, res: any): Promise<Response> {
+    let { baseDirectory } = req.body;
+
+    const path = this._utilities.getBasePath();
+    const directoryPath = `${path}reports\\${baseDirectory ?? ""}`;
+    const files = await fs.readdirSync(directoryPath);
+
+    const response: Response = {
+      message: "",
+      successfully: true,
+      data: files,
     };
 
     return res.json(response);
